@@ -21,5 +21,3 @@ echo_loop_loop() ->
     {message, Msg} -> io:format("~s~n", [Msg]), echo_loop_loop();
     {'EXIT', Pid, Reason} -> io:format("Received EXIT of ~p with reason: ~p.~n", [Pid, Reason])
   end.
-
-  
