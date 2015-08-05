@@ -1,5 +1,5 @@
 %% 6-3 A supervisor process
-
+% TODO - start duplicate child
 -module(exercise_supervisor).
 -export([start_link/2, stop/1, start_filled/0, debug/0]).
 -export([init/1]).
@@ -20,18 +20,44 @@ start_children([]) -> [];
 
 start_children([{M, F, A, T} | ChildSpecList]) ->
   case (catch apply(M,F,A)) of
-    {ok, Pid} -> [{Pid, {M,F,A,T}}|start_children(ChildSpecList)];
+    {ok, Pid} -> [{Pid, {M,F,A,T,{0,0,0},0}}|start_children(ChildSpecList)];
     _ -> start_children(ChildSpecList)
   end.
 
-restart_child(Pid, ChildList, StopReason) ->
-  {value, {Pid, {M,F,A,T}}} = lists:keysearch(Pid, 1, ChildList),
+% Dummy test
+-define(ONEMIN, 60).
+update_child_restart_time({RTMega, RTSec, _RTMicro} = RT, RC) ->
+  {NowMega, NowSec, _NowMicro} = Now = erlang:now(),
   if
+    %((RTMega - NowMega) < 0) -> {Now, RC};
+    ((NowMega - RTMega) == 1) -> NowBigSec = 1000000 + NowSec, % transform Now to sec
+      if
+        ((NowBigSec - RTSec) < ?ONEMIN) -> {RT, RC+1};
+        ((NowBigSec - RTSec) >= ?ONEMIN) -> {Now, 1}
+      end;
+    ((NowMega - RTMega) > 1) -> {Now, 1};
+    ((NowSec - RTSec) < ?ONEMIN) -> {RT, RC+1};
+    ((NowSec - RTSec) >= ?ONEMIN) -> {Now, 1}
+  end.
+
+  %{Now, RC}.
+
+
+-define(RESTARTS, 5).
+restart_child(Pid, ChildList, StopReason) ->
+  % M,F,A - module, function, arguments
+  % T,RT,RC - type, restart time, restart counter
+  {value, {Pid, {M,F,A,T,RT,RC}}} = lists:keysearch(Pid, 1, ChildList),
+  {UpRT, UpRC} = update_child_restart_time(RT,RC),
+  if
+    % job has already been restarted for 5 times
+    (UpRC >= ?RESTARTS) -> lists:keydelete(Pid,1,ChildList);
+    % restart if permanent job failed or transident job stopped with error
     (T == permanent) or ((T == transident) and (StopReason =/= normal)) ->
       {ok, NewPid} = apply(M,F,A),
-      [{NewPid, {M,F,A,T}}|lists:keydelete(Pid,1,ChildList)];
-    (T == transident) ->
-      lists:keydelete(Pid,1,ChildList)
+      [{NewPid, {M,F,A,T,UpRT,UpRC}}|lists:keydelete(Pid,1,ChildList)];
+    % tarnsident job stopped without problem (don't restart it)
+    (T == transident) -> lists:keydelete(Pid,1,ChildList)
   end.
 
 loop(ChildList) ->
