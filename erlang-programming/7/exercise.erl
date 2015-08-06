@@ -53,3 +53,30 @@ circle_area(#circle{radius=R}) ->
 
 
 %%%% 7-5 Binary tree records
+-record(node,{left, right, value}).
+
+tree_generate_tree(Root, []) -> Root;
+tree_generate_tree(Root, [H|T] = _Values) ->
+  tree_generate_tree(tree_add(Root, H), T).
+
+tree_init(Value) -> tree_get_node(Value).
+tree_get_node(Value) -> #node{value=Value}.
+tree_add(Root, Value) -> tree_place_node(Root, tree_get_node(Value)).
+tree_place_node(#node{value=RV, left=RLeft, right=RRight} = Root,
+                #node{value=NV} = Node) ->
+  if
+    % go right
+    RV =< NV ->
+      case RRight of
+        undefined -> Root#node{right=Node};
+        _ -> Root#node{right=tree_place_node(RRight, Node)}
+      end;
+    % go left
+    RV > NV ->
+      case RLeft of
+        undefined -> Root#node{left=Node};
+        _ -> Root#node{left=tree_place_node(RLeft, Node)}
+      end
+  end.
+
+% TODO - sum, size, balance ...
