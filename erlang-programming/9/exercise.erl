@@ -59,4 +59,12 @@ com_symdiff2_part(A,B) ->
 
 
 %%%% 9-3 Zip functions
+zip([],_B) -> [];
+zip(_A,[]) -> [];
+zip([HA|TA] = _A, [HB|TB] = _B) -> [{HA,HB}|zip(TA,TB)].
+
+zipWith(_Fun, [], _B) -> [];
+zipWith(_Fun, _A, []) -> [];
+zipWith(Fun, [HA|TA] = _A, [HB|TB] = _B) -> [Fun(HA,HB) | zipWith(Fun, TA,TB)].
+
 
