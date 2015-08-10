@@ -1,9 +1,7 @@
 %%% 10-1 DB server (main code is from chapter 5)
 
 -module(my_db).
-%-export([start/0, stop/0, write/2, delete/1, read/1, match/1, dbg/0, writelist/1]).
--compile(export_all).
-
+-export([db_new/0, db_destroy/1, db_dbg/1, db_write/3, db_delete/2, db_read/2, db_match/2]).
 
 db_new() -> [].
 db_destroy(_) -> ok.

@@ -1,9 +1,11 @@
 %%%% 10-1 Database server revisited - OTP
 -module(my_db_gen).
 -export([start/0, stop/0]).
--export([write/2]).
+-export([init/1, terminate/2, handle_call/3, handle_cast/2]).
+-export([write/2, delete/1, read/1, match/1, dbg/0]).
+-export([]).
 -behaviour(gen_server).
--compile(export_all).
+%-compile(export_all).
 
 
 % Starting and stopping the server - server commands
@@ -32,8 +34,13 @@ dbg() ->
 
 
 % OTP interface and callbacks to DB
-init(_Args) -> {ok, []}.
-terminate(_Reason, _DB) -> ok.
+init(_Args) ->
+  NewDB = my_db:db_new(),
+  {ok, NewDB}.
+
+terminate(_Reason, DB) ->
+  my_db:db_destroy(DB),
+  ok.
 
 handle_cast(stop, DB) -> {stop, normal, DB}.
 
