@@ -5,51 +5,10 @@
 -compile(export_all).
 
 
-% OTP interface
-init(_Args) -> {ok, []}.
-terminate(_Reason, _LoopData) -> ok.
-
-
-% DB interface
-%% start() -> register(exercise_db, spawn(exercise_db, loop, [[]])), ok.
-%% dbg() -> exercise_db ! {dbg}, ok.
-%% stop() -> exercise_db ! {stop}, ok.
-%%
-%% write(Key, Element) -> exercise_db ! {write, Key, Element}, ok.
-%% delete(Key) -> exercise_db ! {delete, Key}, ok.
-%% read(Key) -> exercise_db ! {read, Key, self()}, read_response().
-%% match(Element) -> exercise_db ! {match, Element, self()}, match_response().
-%% writelist([]) -> ok;
-%% writelist([{Key,Element}|Tail] = _List) -> write(Key, Element), writelist(Tail).
-%%
-%%
-%% read_response() ->
-%%   receive
-%%     {A, B} -> {A, B}
-%%   end.
-%%
-%% match_response() ->
-%%   receive
-%%     Keys -> Keys
-%%   end.
-
-%%
-%% loop(DB) ->
-%%   receive
-%%     {write, Key, Element} -> loop(db_write(Key, Element, DB));
-%%     {delete, Key} -> loop(db_delete(Key, DB));
-%%     {read, Key, Pid} -> Pid ! db_read(Key, DB), loop(DB);
-%%     {match, Element, Pid} -> Pid ! db_match(Element, DB), loop(DB);
-%%     {stop} -> ok;
-%%     {dbg} -> dbg(DB), loop(DB)
-%%   end.
-
-
-dbg(Db) -> io:format("~p~n", [Db]).
-
-% DB interface from chapter 3 (db.erl)
 db_new() -> [].
 db_destroy(_) -> ok.
+db_dbg(Db) -> io:format("DB debug: ~p~n", [Db]).
+
 db_write(Key, Element, Db) ->
   case is_list(Db) of
     true -> [{Key, Element} | Db];
