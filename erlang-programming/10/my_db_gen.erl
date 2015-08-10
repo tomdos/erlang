@@ -1,4 +1,4 @@
-%%%% 12-1 Database server revisited - OTP
+%%%% 10-1 Database server revisited - OTP
 -module(my_db_gen).
 -export([start/0, stop/0]).
 -export([write/2]).
