@@ -1,42 +1,51 @@
-%%% 5-1 A Database server
+%%% 10-1 DB server (main code is from chapter 5)
 
 -module(my_db).
--export([loop/1]).
-% interface
--export([start/0, stop/0, write/2, delete/1, read/1, match/1, dbg/0, writelist/1]).
+%-export([start/0, stop/0, write/2, delete/1, read/1, match/1, dbg/0, writelist/1]).
+-compile(export_all).
+
+
+% OTP interface
+init(_Args) -> {ok, []}.
+terminate(_Reason, _LoopData) -> ok.
+
 
 % DB interface
-start() -> register(my_db, spawn(my_db, loop, [[]])), ok.
-dbg() -> my_db ! {dbg}, ok.
-stop() -> my_db ! {stop}, ok.
+%% start() -> register(exercise_db, spawn(exercise_db, loop, [[]])), ok.
+%% dbg() -> exercise_db ! {dbg}, ok.
+%% stop() -> exercise_db ! {stop}, ok.
+%%
+%% write(Key, Element) -> exercise_db ! {write, Key, Element}, ok.
+%% delete(Key) -> exercise_db ! {delete, Key}, ok.
+%% read(Key) -> exercise_db ! {read, Key, self()}, read_response().
+%% match(Element) -> exercise_db ! {match, Element, self()}, match_response().
+%% writelist([]) -> ok;
+%% writelist([{Key,Element}|Tail] = _List) -> write(Key, Element), writelist(Tail).
+%%
+%%
+%% read_response() ->
+%%   receive
+%%     {A, B} -> {A, B}
+%%   end.
+%%
+%% match_response() ->
+%%   receive
+%%     Keys -> Keys
+%%   end.
 
-write(Key, Element) -> my_db ! {write, Key, Element}, ok.
-delete(Key) -> my_db ! {delete, Key}, ok.
-read(Key) -> my_db ! {read, Key, self()}, read_response().
-match(Element) -> my_db ! {match, Element, self()}, match_response().
-writelist([]) -> ok;
-writelist([{Key,Element}|Tail] = _List) -> write(Key, Element), writelist(Tail).
-
-read_response() ->
-  receive
-    {A, B} -> {A, B}
-  end.
-
-match_response() ->
-  receive
-    Keys -> Keys
-  end.
+%%
+%% loop(DB) ->
+%%   receive
+%%     {write, Key, Element} -> loop(db_write(Key, Element, DB));
+%%     {delete, Key} -> loop(db_delete(Key, DB));
+%%     {read, Key, Pid} -> Pid ! db_read(Key, DB), loop(DB);
+%%     {match, Element, Pid} -> Pid ! db_match(Element, DB), loop(DB);
+%%     {stop} -> ok;
+%%     {dbg} -> dbg(DB), loop(DB)
+%%   end.
 
 
-loop(DB) ->
-  receive
-    {write, Key, Element} -> loop(db_write(Key, Element, DB));
-    {delete, Key} -> loop(db_delete(Key, DB));
-    {read, Key, Pid} -> Pid ! db_read(Key, DB), loop(DB);
-    {match, Element, Pid} -> Pid ! db_match(Element, DB), loop(DB);
-    {stop} -> ok;
-    {dbg} -> io:format("~p~n", [DB]), loop(DB)
-  end.
+dbg(Db) -> io:format("~p~n", [Db]).
 
 % DB interface from chapter 3 (db.erl)
 db_new() -> [].
@@ -50,10 +59,10 @@ db_write(Key, Element, Db) ->
 db_delete(Key, Db) when is_list(Db) -> db_delete_key(Key, Db, []).
 db_delete_key(_Key, [], NewDb) -> NewDb;
 db_delete_key(Key, [{K,_} = H|T], NewDb) ->
- case Key == K of
-   true -> db_delete_key(Key, T, NewDb);
-   false -> db_delete_key(Key, T, [H | NewDb])
- end.
+  case Key == K of
+    true -> db_delete_key(Key, T, NewDb);
+    false -> db_delete_key(Key, T, [H | NewDb])
+  end.
 
 db_read(Key, Db) when is_list(Db) -> db_read_key(Key, Db).
 db_read_key(_Key, []) -> {error, instance};
