@@ -1,0 +1,32 @@
+.protobuf-package "message_proto"
+
+.record [
+	.name message
+
+	.field [
+		.name id
+		.type int
+	]
+
+	.field [
+		.name text
+		.type string
+	]
+
+	.field [
+		.name type
+		.type message-type
+	]
+	
+	.field [
+		.name info
+		.type string
+		.optional
+	]
+]
+
+.enum [
+	.name message-type
+	.option [ .name request ]
+	.option [ .name response ]
+]
