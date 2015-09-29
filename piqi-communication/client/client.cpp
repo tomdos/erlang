@@ -24,7 +24,7 @@ private:
 public:
     tcp_client();
     bool conn(string, int);
-    bool send_data(string data);
+    bool send_data(void *date, int len);
     string receive(int);
 };
 
@@ -107,10 +107,10 @@ bool tcp_client::conn(string address , int port)
 /**
     Send data to the connected host
 */
-bool tcp_client::send_data(string data)
+bool tcp_client::send_data(void *data, int len)
 {
     //Send some data
-    if( send(sock , data.c_str() , strlen( data.c_str() ) , 0) < 0)
+    if( send(sock , data , len , 0) < 0)
     {
         perror("Send failed : ");
         return false;
@@ -138,24 +138,35 @@ string tcp_client::receive(int size=512)
     return reply;
 }
 
+
 int main(int argc , char *argv[])
 {
     tcp_client c;
     string host;
 
-    cout<<"Enter hostname : ";
-    cin>>host;
+
+    // Set message
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+    message_proto::message message;
+    message.set_id(1);
+    message.set_text("ABCD");
+    message.set_type(message_proto::request);
+    message.set_info("abcd");
+
+    //cout<<"Enter hostname : ";
+    //cin>>host;
+    host = "localhost";
 
     //connect to host
     c.conn(host , 1234);
 
     //send some data
-    c.send_data("Hello\n");
+    c.send_data((void *) &message, sizeof(message));
 
     //receive and echo reply
-    cout<<"----------------------------\n\n";
-    cout<<c.receive(1024);
-    cout<<"\n\n----------------------------\n\n";
+    //cout<<"----------------------------\n\n";
+    //cout<<c.receive(1024);
+    //cout<<"\n\n----------------------------\n\n";
 
     //done
     return 0;
