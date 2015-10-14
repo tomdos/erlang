@@ -164,9 +164,9 @@ int main(int argc , char *argv[])
     c.send_data((void *) &message, sizeof(message));
 
     //receive and echo reply
-    //cout<<"----------------------------\n\n";
-    //cout<<c.receive(1024);
-    //cout<<"\n\n----------------------------\n\n";
+    cout<<"----------------------------\n\n";
+    cout<<c.receive(1024);
+    cout<<"\n\n----------------------------\n\n";
 
     //done
     return 0;
