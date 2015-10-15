@@ -3,20 +3,24 @@
 
 -define(PORT, 1234).
 
-%% API
-start() -> listen(?PORT).
-start(Port) -> listen(Port).
+
+%% Public API
+start() -> start(?PORT).
+start(Port) -> spawn_link(?MODULE, listen, [Port]), ok.
+
 
 
 listen(Port) ->
   {ok, Socket} = gen_tcp:listen(Port, [binary, {active, false}]),
-  wait_connect(Socket, 0).
+  wait_connect(Socket, 1).
 
 wait_connect(ListenSocket, Count) ->
   io:format("~p -> wailt_connect~n", [self()]),
   {ok, NewSocket} = gen_tcp:accept(ListenSocket),
-  spawn(?MODULE, wait_connect, [ListenSocket, Count+1]),
-  request(NewSocket, [], Count).
+  %spawn(?MODULE, wait_connect, [ListenSocket, Count+1]),
+  %request(NewSocket, [], Count).
+  spawn(?MODULE, request, [NewSocket, [], Count]),
+  wait_connect(ListenSocket, Count+1).
 
 request(Socket, BinaryList, Count) ->
   case gen_tcp:recv(Socket, 0, 5000) of
@@ -26,4 +30,4 @@ request(Socket, BinaryList, Count) ->
   end.
 
 process_request(BinaryList, Count) ->
-  io:format("~p -> ~p~n", [self(), BinaryList]), ok.
+  io:format("~p -> ~p (~p)~n", [self(), BinaryList, Count]), ok.
