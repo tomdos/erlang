@@ -6,16 +6,19 @@
 	.field [
 		.name id
 		.type int
+		.optional
 	]
 
 	.field [
 		.name text
 		.type string
+		.optional
 	]
 
 	.field [
 		.name type
 		.type message-type
+		.optional
 	]
 	
 	.field [

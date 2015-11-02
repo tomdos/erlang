@@ -5,7 +5,8 @@
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+                  piqi
                  ]},
   {mod, { server_app, []}},
   {env, []}

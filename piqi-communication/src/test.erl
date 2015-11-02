@@ -9,10 +9,15 @@ decode(Buf)->
 encode(Msg)-> 
     message_piqi:gen_message(Msg).
 
+piqiruntest() -> io:format("~p~n", [piqirun:module_info()]).
+
 run()->
-    Msg = #message_message{id = 65, text = "abc"},
+    %piqiruntest(),
+    Msg = #message_message{id = 65, text = "abc", type = request, info = "some more detailed info"},
+    %Msg = #message_message{},
     io:format("Msg: ~p~n",[Msg]),
     EMsg = encode(Msg),
     io:format("Encoded: ~p~n",[EMsg]),
-    DMsg = decode(EMsg),
+    BEMsg = binary:list_to_bin(EMsg),
+    DMsg = decode(BEMsg),
     io:format("Decoded~p~n",[DMsg]).
