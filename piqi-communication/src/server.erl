@@ -1,6 +1,8 @@
 -module(server).
 -compile([export_all]).
 
+-include("message_piqi.hrl").
+
 -define(PORT, 1234).
 
 
@@ -22,12 +24,39 @@ wait_connect(ListenSocket, Count) ->
   spawn(?MODULE, request, [NewSocket, [], Count]),
   wait_connect(ListenSocket, Count+1).
 
-request(Socket, BinaryList, Count) ->
-  case gen_tcp:recv(Socket, 0, 5000) of
-    {ok, Binary} -> request(Socket, [Binary|BinaryList], Count);
-    {error, closed} -> gen_tcp:close(Socket),
-      process_request(lists:reverse(BinaryList), Count)
+request(Socket, _BinaryList, Count) ->
+  case gen_tcp:recv(Socket, 0) of
+    {ok, Binary} ->
+        io:format("receiving~n"),
+        % I should deal with possibility that received message is not whole.
+        Request = process_request(Binary, Count),
+        response(Socket, Request),
+        request(Socket, [], Count);
+    {error, _} -> gen_tcp:close(Socket),
+        io:format("connection closed~n")
   end.
 
-process_request(BinaryList, Count) ->
-  io:format("~p -> ~p (~p)~n", [self(), BinaryList, Count]), ok.
+%process_request([], _) -> ok;
+process_request(Binary, Count) ->
+    io:format("~p~n", [Binary]),
+    Request = message_piqi:parse_message(Binary),
+    io:format("~p -> ~p (~p)~n", [self(), Request, Count]),
+    Request.
+
+response(Socket, Request) ->
+    Response = prepare_response(Request),
+    io:format("response encoded: ~p~n", [Response]),
+    case gen_tcp:send(Socket, Response) of
+        {error, Reason } -> io:format("response error: ~p~n", Reason);
+        ok -> ok
+    end.
+
+prepare_response(Request) ->
+    Msg = "Message '" ++ binary:bin_to_list(Request#message_message.msg) ++ "' has been received",
+    Response = #message_message {
+        id = Request#message_message.id,
+        msg = Msg,
+        type = response
+    },
+    io:format("response: ~p~n", [Response]),
+    message_piqi:gen_message(Response).

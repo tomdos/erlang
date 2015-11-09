@@ -115,7 +115,6 @@ bool tcp_client::send_data(void *data, int len)
         perror("Send failed : ");
         return false;
     }
-    cout<<"Data send\n";
 
     return true;
 }
@@ -138,36 +137,43 @@ string tcp_client::receive(int size=512)
     return reply;
 }
 
+void
+loop(tcp_client &client)
+{
+    // Set message
+    string outputMessage;
+    string inputMessage;
+
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+    message_proto::message message;
+    message.set_id(1);
+    message.set_msg("ABCD");
+    message.set_type(message_proto::request);
+    message.SerializeToString(&outputMessage);
+
+
+    // send message
+    cout << "S: " << message.id() << "; " << message.msg() << "; " <<
+        ((message.type() == message_proto::request) ? "request" : "response") << endl;
+
+    client.send_data((void *) (outputMessage.c_str()), outputMessage.length());
+
+    // receive answer
+    message.Clear();
+    message.ParseFromString(client.receive(1024));
+    cout << "R: " << message.id() << "; " << message.msg() << "; " <<
+        ((message.type() == message_proto::request) ? "request" : "response") << endl;
+
+}
 
 int main(int argc , char *argv[])
 {
     tcp_client c;
-    string host;
 
-
-    // Set message
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
-    message_proto::message message;
-    message.set_id(1);
-    message.set_text("ABCD");
-    message.set_type(message_proto::request);
-    message.set_info("abcd");
-
-    //cout<<"Enter hostname : ";
-    //cin>>host;
     host = "localhost";
-
-    //connect to host
     c.conn(host , 1234);
 
-    //send some data
-    c.send_data((void *) &message, sizeof(message));
+    loop(c);
 
-    //receive and echo reply
-    cout<<"----------------------------\n\n";
-    cout<<c.receive(1024);
-    cout<<"\n\n----------------------------\n\n";
-
-    //done
     return 0;
 }

@@ -13,11 +13,12 @@ piqiruntest() -> io:format("~p~n", [piqirun:module_info()]).
 
 run()->
     %piqiruntest(),
-    Msg = #message_message{id = 65, text = "abc", type = request, info = "some more detailed info"},
+    Msg = #message_message{id = 1, msg = "ABCD", type = request},
     %Msg = #message_message{},
     io:format("Msg: ~p~n",[Msg]),
     EMsg = encode(Msg),
     io:format("Encoded: ~p~n",[EMsg]),
     BEMsg = binary:list_to_bin(EMsg),
+    io:format("Binary: ~p~n",[BEMsg]),
     DMsg = decode(BEMsg),
     io:format("Decoded~p~n",[DMsg]).
