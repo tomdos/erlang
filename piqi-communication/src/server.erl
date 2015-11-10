@@ -27,7 +27,6 @@ wait_connect(ListenSocket, Count) ->
 request(Socket, _BinaryList, Count) ->
   case gen_tcp:recv(Socket, 0) of
     {ok, Binary} ->
-        io:format("receiving~n"),
         % I should deal with possibility that received message is not whole.
         Request = process_request(Binary, Count),
         response(Socket, Request),
@@ -36,16 +35,19 @@ request(Socket, _BinaryList, Count) ->
         io:format("connection closed~n")
   end.
 
+%%% Test to receive larger message and deal with partial message ^^^
+
 %process_request([], _) -> ok;
 process_request(Binary, Count) ->
-    io:format("~p~n", [Binary]),
+    %%io:format("~p~n", [Binary]),
     Request = message_piqi:parse_message(Binary),
-    io:format("~p -> ~p (~p)~n", [self(), Request, Count]),
+    %io:format("~p -> ~p ~n", [self(), Request]),
+    io:format("~p request~n", [self()]),
     Request.
 
 response(Socket, Request) ->
     Response = prepare_response(Request),
-    io:format("response encoded: ~p~n", [Response]),
+    %io:format("response encoded: ~p~n", [Response]),
     case gen_tcp:send(Socket, Response) of
         {error, Reason } -> io:format("response error: ~p~n", Reason);
         ok -> ok
@@ -58,5 +60,5 @@ prepare_response(Request) ->
         msg = Msg,
         type = response
     },
-    io:format("response: ~p~n", [Response]),
+    %io:format("~p -> ~p~n", [self(), Response]),
     message_piqi:gen_message(Response).

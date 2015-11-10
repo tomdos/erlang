@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <unistd.h>
 
 #include "proto/message.piqi.pb.h"
 
@@ -140,35 +141,44 @@ string tcp_client::receive(int size=512)
 void
 loop(tcp_client &client)
 {
-    // Set message
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
     string outputMessage;
     string inputMessage;
-
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
     message_proto::message message;
-    message.set_id(1);
-    message.set_msg("ABCD");
-    message.set_type(message_proto::request);
-    message.SerializeToString(&outputMessage);
+    int i;
+
+    for (i = 0; i < 24; i++) {
+        string m = "A";
+        m[0] += i;
+
+        message.Clear();
+        message.set_id(1);
+        message.set_msg(m);
+        message.set_type(message_proto::request);
+        message.SerializeToString(&outputMessage);
 
 
-    // send message
-    cout << "S: " << message.id() << "; " << message.msg() << "; " <<
-        ((message.type() == message_proto::request) ? "request" : "response") << endl;
+        // send message
+        cout << "S: " << message.id() << "; " << message.msg() << "; " <<
+            ((message.type() == message_proto::request) ? "request" : "response") << endl;
 
-    client.send_data((void *) (outputMessage.c_str()), outputMessage.length());
+        client.send_data((void *) (outputMessage.c_str()), outputMessage.length());
 
-    // receive answer
-    message.Clear();
-    message.ParseFromString(client.receive(1024));
-    cout << "R: " << message.id() << "; " << message.msg() << "; " <<
-        ((message.type() == message_proto::request) ? "request" : "response") << endl;
+        // receive answer
+        message.Clear();
+        message.ParseFromString(client.receive(1024));
+        cout << "R: " << message.id() << "; " << message.msg() << "; " <<
+            ((message.type() == message_proto::request) ? "request" : "response") << endl;
+
+        sleep(1);
+    }
 
 }
 
 int main(int argc , char *argv[])
 {
     tcp_client c;
+    const char *host;
 
     host = "localhost";
     c.conn(host , 1234);
